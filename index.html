@@ -1,42 +1,592 @@
-
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#080b18">
-  <title>Luna — Voice Assistant</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Athena Luna - AI Companion</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Plus+Jakarta+Sans:wght@300;400;600;700&family=Sacramento&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #1b1b4d 0%, #2e2870 40%, #4a3485 70%, #68429b 100%);
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --glass-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            --primary-glow: #9d4edd;
+            --secondary-glow: #c77dff;
+            --accent-pink: #ff85a1;
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.7);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: var(--text-main);
+        }
+
+        /* Ambient glowing background blur nodes */
+        .bg-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.5;
+            z-index: 0;
+            animation: pulseBlob 10s infinite alternate ease-in-out;
+        }
+        .blob-1 { top: -10%; left: -10%; width: 500px; height: 500px; background: #5a189a; }
+        .blob-2 { bottom: -10%; right: -10%; width: 600px; height: 600px; background: #7b2cbf; }
+        .blob-3 { top: 40%; left: 30%; width: 350px; height: 350px; background: #ff758f; opacity: 0.3; }
+
+        @keyframes pulseBlob {
+            0% { transform: scale(1) translate(0, 0); }
+            100% { transform: scale(1.15) translate(20px, -20px); }
+        }
+
+        /* Main Glass Container */
+        .glass-container {
+            position: relative;
+            z-index: 1;
+            width: 92vw;
+            height: 90vh;
+            max-width: 1300px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            box-shadow: var(--glass-shadow);
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            grid-template-rows: 70px 1fr 70px;
+            overflow: hidden;
+        }
+
+        /* Top Bar Header */
+        .header-bar {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .window-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+        }
+        .dot-red { background: #ff5f56; }
+        .dot-yellow { background: #ffbd2e; }
+        .dot-green { background: #27c93f; }
+
+        /* Heart Font Brand Title in Center */
+        .brand-heart-title {
+            font-family: 'Sacramento', 'Dancing Script', cursive;
+            font-size: 2.8rem;
+            color: #ffffff;
+            text-shadow: 0 0 15px rgba(255, 133, 161, 0.8), 0 0 25px rgba(199, 125, 255, 0.6);
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-heart-title span {
+            color: var(--accent-pink);
+            font-size: 2.2rem;
+            animation: heartBeat 1.8s infinite ease-in-out;
+        }
+
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.25); }
+        }
+
+        /* Top Right Anime Girl Avatar Frame */
+        .avatar-corner-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 6px 14px 6px 6px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .anime-avatar-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-pink);
+            overflow: hidden;
+            position: relative;
+            background: #10002b;
+            box-shadow: 0 0 12px var(--accent-pink);
+        }
+
+        .anime-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .eye-blink {
+            transform-origin: center;
+            animation: blinkEyes 4s infinite ease-in-out;
+        }
+
+        @keyframes blinkEyes {
+            0%, 94%, 98%, 100% { transform: scaleY(1); }
+            96% { transform: scaleY(0.05); }
+        }
+
+        .mouth-smile {
+            transition: d 0.3s ease;
+        }
+
+        .avatar-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .avatar-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .avatar-status {
+            font-size: 0.7rem;
+            color: var(--accent-pink);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: #00f5d4;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #00f5d4;
+        }
+
+        /* Left Navigation Sidebar */
+        .sidebar-nav {
+            grid-row: 2 / -1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 25px;
+            gap: 22px;
+            border-right: 1px solid var(--glass-border);
+        }
+
+        .nav-icon-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-icon-btn:hover, .nav-icon-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            box-shadow: 0 0 15px var(--secondary-glow);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Main Workspace Stage */
+        .main-stage {
+            grid-column: 2;
+            grid-row: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 20px;
+        }
+
+        /* Clean Center LUNA Sphere (Single Ring Only) */
+        .luna-center-stage {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .single-clean-ring {
+            position: absolute;
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(0, 245, 212, 0.5);
+            box-shadow: 0 0 15px rgba(0, 245, 212, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .luna-glow-orb {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #00f5d4 0%, #9d4edd 60%, #10002b 100%);
+            box-shadow: 0 0 40px rgba(0, 245, 212, 0.6), inset 0 0 15px #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        .luna-text-logo {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        /* Active Animated State (Only when Listening / Speaking) */
+        .luna-center-stage.active .single-clean-ring {
+            animation: pulseRing 1.5s infinite ease-in-out;
+            border-color: rgba(255, 133, 161, 0.8);
+            box-shadow: 0 0 25px rgba(255, 133, 161, 0.5);
+        }
+
+        .luna-center-stage.active .luna-glow-orb {
+            animation: orbPulse 1.2s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulseRing {
+            0% { transform: scale(0.98); opacity: 0.6; }
+            50% { transform: scale(1.06); opacity: 1; }
+            100% { transform: scale(0.98); opacity: 0.6; }
+        }
+
+        @keyframes orbPulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 35px var(--primary-glow); }
+            100% { transform: scale(1.1); box-shadow: 0 0 65px var(--accent-pink); }
+        }
+
+        /* Waveform Bars */
+        .wave-visualizer {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            height: 30px;
+            margin-top: 25px;
+        }
+
+        .wave-bar {
+            width: 4px;
+            height: 8px;
+            background: #00f5d4;
+            border-radius: 4px;
+            transition: height 0.1s ease;
+            box-shadow: 0 0 8px #00f5d4;
+        }
+
+        .speech-subtitle {
+            margin-top: 15px;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            background: rgba(0, 0, 0, 0.25);
+            padding: 8px 22px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: center;
+            max-width: 80%;
+            letter-spacing: 0.5px;
+        }
+
+        /* Bottom Action Bar */
+        .bottom-bar {
+            grid-column: 2;
+            grid-row: 3;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .voice-mode-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.12);
+            padding: 10px 22px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #fff;
+        }
+
+        .voice-mode-pill:hover {
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 15px var(--accent-pink);
+        }
+
+        .input-chat-box {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 20px;
+            position: relative;
+        }
+
+        .chat-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 12px 45px 12px 20px;
+            border-radius: 25px;
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input:focus {
+            border-color: var(--secondary-glow);
+            box-shadow: 0 0 12px var(--primary-glow);
+            background: rgba(255, 255, 255, 0.14);
+        }
+
+        .send-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--accent-pink);
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 6px;
+        }
+    </style>
 </head>
 <body>
-  <main class="app">
-    <header>
-      <div class="logo">☾ LUNA</div>
-      <div id="status">Ready when you are</div>
-    </header>
 
-    <section class="main">
-      <p class="eyebrow">YOUR PERSONAL AI</p>
-      <h1>Hello, Remo<span>.</span></h1>
-      <p class="subtitle">Your Luna, one voice away.</p>
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+    <div class="bg-blob blob-3"></div>
 
-      <div class="orb" id="orb">☾</div>
+    <div class="glass-container">
+        <!-- Top Window Header Bar -->
+        <header class="header-bar">
+            <div class="window-dots">
+                <div class="dot dot-red"></div>
+                <div class="dot dot-yellow"></div>
+                <div class="dot dot-green"></div>
+            </div>
 
-      <p id="voiceStatus">Luna is waiting</p>
+            <!-- Center Heart Font Brand Title -->
+            <div class="brand-heart-title">
+                Athena Luna <span>♥</span>
+            </div>
 
-      <button id="talkBtn">🎙 Tap to speak</button>
-      <button id="stopBtn" class="stop">Stop voice</button>
+            <!-- Top Right Animated Anime Avatar -->
+            <div class="avatar-corner-box">
+                <div class="anime-avatar-circle">
+                    <svg class="anime-svg" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="50" fill="#2d006b"/>
+                        <path d="M 20,60 Q 15,30 50,15 Q 85,30 80,60 Z" fill="#3c096c"/>
+                        <path d="M 30,45 Q 50,85 70,45 Q 70,30 30,30 Z" fill="#ffdfd3"/>
+                        <path d="M 25,32 Q 50,42 75,32 Q 60,18 50,18 Q 40,18 25,32 Z" fill="#5a189a"/>
+                        <g class="eye-blink">
+                            <ellipse cx="40" cy="46" rx="4" ry="6" fill="#10002b"/>
+                            <ellipse cx="60" cy="46" rx="4" ry="6" fill="#10002b"/>
+                            <circle cx="39" cy="44" r="1.5" fill="#ffffff"/>
+                            <circle cx="59" cy="44" r="1.5" fill="#ffffff"/>
+                        </g>
+                        <path d="M 35,38 Q 40,36 45,38" stroke="#3c096c" stroke-width="1.5" fill="none"/>
+                        <path d="M 55,38 Q 60,36 65,38" stroke="#3c096c" stroke-width="1.5" fill="none"/>
+                        <path id="avatar-mouth" class="mouth-smile" d="M 44,58 Q 50,63 56,58" stroke="#ff4d6d" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <circle cx="35" cy="52" r="3" fill="#ff85a1" opacity="0.5"/>
+                        <circle cx="65" cy="52" r="3" fill="#ff85a1" opacity="0.5"/>
+                    </svg>
+                </div>
+                <div class="avatar-info">
+                    <span class="avatar-name">Athena Luna</span>
+                    <span class="avatar-status"><div class="status-dot"></div> Online</span>
+                </div>
+            </div>
+        </header>
 
-      <p id="heard">Your spoken words will appear here.</p>
-      <p id="reply">Hi Remo! I'm ready when you are.</p>
+        <!-- Left Navigation Sidebar -->
+        <nav class="sidebar-nav">
+            <div class="nav-icon-btn active" title="Home">✦</div>
+            <div class="nav-icon-btn" title="Chat">⌂</div>
+            <div class="nav-icon-btn" title="Voice Mode">🎤</div>
+            <div class="nav-icon-btn" title="Settings">⚙</div>
+        </nav>
 
-      <p class="note">
-        Demo version: online AI and always-on wake word
-        are not connected yet.
-      </p>
-    </section>
-  </main>
+        <!-- Main Center Hologram Stage -->
+        <main class="main-stage">
+            <div class="luna-center-stage" id="luna-stage">
+                <div class="single-clean-ring"></div>
+                <div class="luna-glow-orb">
+                    <span class="luna-text-logo">LUNA</span>
+                </div>
+            </div>
 
-  <script src="app.js"></script>
-</body>
-</html>
+            <!-- Waveform Visualizer -->
+            <div class="wave-visualizer" id="wave-box">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+            </div>
+
+            <div class="speech-subtitle" id="speech-status">
+                "Hello Kannan! Click LUNA to start talking."
+            </div>
+        </main>
+
+        <!-- Bottom Action Bar -->
+        <footer class="bottom-bar">
+            <div class="voice-mode-pill" id="voice-mode-btn">
+                <span>🎤</span> Voice Mode
+            </div>
+
+            <div class="input-chat-box">
+                <input type="text" class="chat-input" id="user-text-input" placeholder="Ask Athena Luna anything..." />
+                <button class="send-btn" id="send-btn">➔</button>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        let isSpeaking = false;
+        const speechStatus = document.getElementById('speech-status');
+        const avatarMouth = document.getElementById('avatar-mouth');
+        const lunaStage = document.getElementById('luna-stage');
+        const waveBars = document.querySelectorAll('.wave-bar');
+
+        // Waveform Animation Loop
+        setInterval(() => {
+            waveBars.forEach(bar => {
+                const height = isSpeaking ? Math.floor(Math.random() * 24) + 6 : 8;
+                bar.style.height = height + 'px';
+            });
+        }, 120);
+
+        function setVoiceActive(active) {
+            isSpeaking = active;
+            if (active) {
+                lunaStage.classList.add('active');
+            } else {
+                lunaStage.classList.remove('active');
+            }
+        }
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                
+                utterance.onstart = () => {
+                    setVoiceActive(true);
+                    speechStatus.textContent = `"${text}"`;
+                    avatarMouth.setAttribute('d', 'M 42,56 Q 50,68 58,56');
+                };
+
+                utterance.onend = () => {
+                    setVoiceActive(false);
+                    avatarMouth.setAttribute('d', 'M 44,58 Q 50,63 56,58');
+                };
+
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function triggerVoiceInput() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert("Speech recognition is not supported in your browser.");
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                setVoiceActive(true);
+                speechStatus.textContent = "Listening to you, Kannan...";
+            };
+
+            recognition.onresult = (event) => {
+                const query = event.results[0][0].transcript;
+                processQuery(query);
+            };
+
+            recognition.onerror = () => {
+                setVoiceActive(false);
+                speechStatus.textContent = "Could not catch that. Please try again.";
+            };
+
+            recognition.start();
+        }
+
+        function processQuery(query) {
+            let response = "I am ready to assist you!";
+            const q = query.toLowerCase();
+            if (q.includes("hello") || q.includes("hi")) {
+                response = "Hello Kannan! Great to talk with you.";
+            } else if (q.includes("who are you") || q.includes("name")) {
+                response = "I am Athena Luna, your personal AI companion.";
+            } else if (q.includes("how are you")) {
+                response = "I am operating at full capacity, Kannan!";
+            }
+            speak(response);
+        }
+
+        document.getElementById('luna-stage').addEventListener('click', triggerVoiceInput);
+        document.getElementById('voice-mode-btn').addEventListener('click', triggerVoiceInput);
+
+        document.getElementById('send-btn').addEventListener('click', () => {
+            const input = document.getElementById('user-text-input');
+            if (input.value.trim() !== '') {
+                processQuery(input.value);
+                input.value = '';
+            }
+       
