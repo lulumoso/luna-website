@@ -1,107 +1,97 @@
 
-const talkBtn = document.getElementById("talkBtn");
-const stopBtn = document.getElementById("stopBtn");
-const statusText = document.getElementById("status");
-const voiceStatus = document.getElementById("voiceStatus");
-const heardText = document.getElementById("heard");
-const replyText = document.getElementById("reply");
+const orb = document.getElementById("orb");
+const status = document.getElementById("voiceStatus");
+const heard = document.getElementById("heard");
+const reply = document.getElementById("reply");
 
-const SpeechRecognition =
-  window.SpeechRecognition ||
-  window.webkitSpeechRecognition;
+let audioContext;
+let analyser;
+let microphone;
+let animationId;
 
-let recognition = null;
+async function startLunaVoice() {
+  try {
+    status.textContent = "Requesting microphone permission...";
 
-function speak(message) {
-  window.speechSynthesis.cancel();
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: true
+    });
 
-  const utterance = new SpeechSynthesisUtterance(message);
-  utterance.lang = "en-IN";
-  utterance.rate = 1;
+    audioContext = new (
+      window.AudioContext || window.webkitAudioContext
+    )();
 
-  utterance.onstart = () => {
-    voiceStatus.textContent = "Luna is speaking...";
-  };
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 256;
 
-  utterance.onend = () => {
-    voiceStatus.textContent = "Luna is waiting";
-    statusText.textContent = "Ready when you are";
-  };
+    microphone = audioContext.createMediaStreamSource(stream);
+    microphone.connect(analyser);
 
-  window.speechSynthesis.speak(utterance);
+    const data = new Uint8Array(analyser.frequencyBinCount);
+
+    function animateWaves() {
+      analyser.getByteFrequencyData(data);
+
+      const volume =
+        data.reduce((sum, value) => sum + value, 0) /
+        data.length;
+
+      const scale = 1 + Math.min(volume / 180, 0.35);
+
+      if (orb) {
+        orb.style.transform = `scale(${scale})`;
+        orb.style.boxShadow =
+          `0 0 ${25 + volume}px rgba(130, 90, 255, 0.8)`;
+      }
+
+      animationId = requestAnimationFrame(animateWaves);
+    }
+
+    animateWaves();
+
+    status.textContent = "Luna is listening";
+    reply.textContent = "Microphone connected. Speak now.";
+
+  } catch (error) {
+    status.textContent = "Microphone access failed";
+    reply.textContent =
+      "Allow microphone access in your browser settings, then try again.";
+    console.error(error);
+  }
 }
 
-talkBtn.addEventListener("click", () => {
-  if (!SpeechRecognition) {
-    replyText.textContent =
-      "Voice recognition is not supported by this browser. Try Chrome.";
-    speak("Please open Luna in Google Chrome.");
-    return;
+function stopLunaVoice() {
+  cancelAnimationFrame(animationId);
+
+  if (microphone) {
+    microphone.mediaStream.getTracks().forEach(track => track.stop());
+    microphone.disconnect();
+    microphone = null;
   }
 
-  if (recognition) {
-    recognition.stop();
+  if (audioContext) {
+    audioContext.close();
+    audioContext = null;
   }
 
-  recognition = new SpeechRecognition();
-  recognition.lang = "en-IN";
-  recognition.continuous = false;
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
-
-  recognition.onstart = () => {
-    statusText.textContent = "Listening";
-    voiceStatus.textContent = "I'm listening, Remo...";
-    heardText.textContent = "Listening for your voice...";
-  };
-
-  recognition.onresult = (event) => {
-    const words = event.results[0][0].transcript;
-
-    heardText.textContent = "You said: " + words;
-    const message =
-      "I heard you say: " + words +
-      ". My online AI brain is not connected yet.";
-
-    replyText.textContent = message;
-    speak(message);
-  };
-
-  recognition.onerror = (event) => {
-    statusText.textContent = "Voice error";
-    voiceStatus.textContent = "Please try again";
-    replyText.textContent =
-      "Microphone error: " + event.error +
-      ". Check microphone permission and try again.";
-  };
-
-  recognition.onend = () => {
-    if (voiceStatus.textContent !== "Luna is speaking...") {
-      statusText.textContent = "Ready when you are";
-      voiceStatus.textContent = "Luna is waiting";
-    }
-  };
-
-  try {
-    recognition.start();
-  } catch (error) {
-    replyText.textContent =
-      "Please wait a moment, then tap the microphone again.";
-  }
-});
-
-stopBtn.addEventListener("click", () => {
-  if (recognition) {
-    recognition.stop();
-    recognition = null;
+  if (orb) {
+    orb.style.transform = "scale(1)";
+    orb.style.boxShadow = "";
   }
 
-  window.speechSynthesis.cancel();
-  statusText.textContent = "Stopped";
-  voiceStatus.textContent = "Luna is waiting";
-});
+  status.textContent = "Luna is waiting";
+}
 
-window.addEventListener("beforeunload", () => {
-  if (recognition) recognition.stop();
-  window.speechSynthesis.cancel();
+document.addEventListener("DOMContentLoaded", () => {
+  const talkButton = document.getElementById("talkBtn");
+  const stopButton = document.getElementById("stopBtn");
+
+  if (talkButton) {
+    talkButton.textContent = "🎙 Enable microphone";
+    talkButton.addEventListener("click", startLunaVoice);
+  }
+
+  if (stopButton) {
+    stopButton.addEventListener("click", stopLunaVoice);
+  }
 });
